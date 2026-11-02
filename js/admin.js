@@ -211,6 +211,7 @@ function renderPedidos() {
         <p>${retirada ? '🏪 <strong>Retirada na loja</strong>'
           : `🛵 ${esc(p.endereco)}${p.referencia ? `<br><small>${esc(p.referencia)}</small>` : ''}`}</p>
         <ul class="pedido-itens">${p.itens.map(i => `<li>${esc(descreverItem(i))} <strong>${fmt(i.preco * i.qtd)}</strong></li>`).join('')}</ul>
+        ${p.talheres == null ? '' : `<p class="pedido-talheres ${p.talheres ? 'sim' : ''}">${p.talheres ? '🥄 Mandar colher e guardanapo' : 'Sem colher e guardanapo'}</p>`}
         ${p.observacoes ? `<p class="pedido-obs">📝 ${esc(p.observacoes)}</p>` : ''}
         <p class="pedido-total">Total <strong>${fmt(p.total)}</strong> · ${esc(p.pagamento)}${p.troco_para ? ` (troco para ${fmt(p.troco_para)})` : ''}</p>
         ${p.motivo_cancelamento ? `<p class="pedido-obs">Motivo: ${esc(p.motivo_cancelamento)}</p>` : ''}

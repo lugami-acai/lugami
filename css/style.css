@@ -315,6 +315,8 @@ textarea { resize: vertical; }
 .pedido-itens { margin: 8px 0; padding-left: 18px; }
 .pedido-itens li { margin: 3px 0; }
 .pedido-obs { background: var(--roxo-claro); padding: 8px 12px; border-radius: 10px; }
+.pedido-talheres { color: var(--texto-suave); font-weight: 700; }
+.pedido-talheres.sim { color: var(--roxo-escuro); background: #fff6d1; padding: 8px 12px; border-radius: 10px; font-weight: 800; }
 .pedido-total strong { color: var(--roxo); font-size: 1.1rem; }
 .pedido-acoes { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 .pedido-acoes:empty { display: none; }

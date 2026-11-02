@@ -13,6 +13,7 @@ function mensagemParaLoja(p) {
     '',
     `Total: ${fmt(p.total)} (${p.pagamento})`,
     p.tipo_entrega === 'retirada' ? 'Vou retirar na loja.' : '',
+    p.talheres == null ? '' : p.talheres ? 'Com colher e guardanapo.' : 'Sem colher e guardanapo.',
     p.pagamento === 'Pix' ? 'Segue o comprovante do Pix:' : '',
   ];
   return linhas.filter((l, i, arr) => l || arr[i - 1]).join('\n').trim();
@@ -76,6 +77,7 @@ function render(p) {
         <div><dt>${retirada ? 'Retirada' : 'Entrega'}</dt><dd>${p.taxa_entrega ? fmt(p.taxa_entrega) : 'grátis'}</dd></div>
         <div class="resumo-total"><dt>Total</dt><dd>${fmt(p.total)}</dd></div>
         <div><dt>Pagamento</dt><dd>${esc(p.pagamento)}</dd></div>
+        ${p.talheres == null ? '' : `<div><dt>Colher e guardanapo</dt><dd>${p.talheres ? 'Sim' : 'Não'}</dd></div>`}
       </dl>
     </div>
 

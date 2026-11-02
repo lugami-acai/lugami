@@ -316,6 +316,8 @@ async function enviarPedido() {
   if (tipo === 'entrega' && !v('rua')) return erro('Informe a rua e o número.', $('rua'));
   if (tipo === 'entrega' && !v('bairro')) return erro('Informe o bairro.', $('bairro'));
   if (!pagamento()) return erro('Escolha a forma de pagamento.', $('pagamento-sec'));
+  const talheres = document.querySelector('input[name=talheres]:checked')?.value;
+  if (!talheres) return erro('Diga se precisa de colher e guardanapo.', $('talheres-sec'));
 
   const troco = parseFloat(v('troco').replace(',', '.'));
   const pedido = {
@@ -327,6 +329,7 @@ async function enviarPedido() {
     pagamento: pagamento(),
     troco_para: pagamento() === 'Dinheiro' && troco > 0 ? troco : null,
     observacoes: v('observacoes') || null,
+    talheres: talheres === 'sim',
     itens: carrinho,
     subtotal: t.subtotal,
     taxa_entrega: t.taxa,
