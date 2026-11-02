@@ -7,8 +7,8 @@
 <meta name="description" content="Monte seu açaí e peça pelo celular.">
 <meta property="og:title" content="Lugami — Açaí e Sorvetes">
 <meta property="og:description" content="Monte seu açaí e peça pelo celular 💜">
-<meta property="og:image" content="https://gabrielleite16-netizen.github.io/lugami/img/logo.png">
-<meta property="og:url" content="https://gabrielleite16-netizen.github.io/lugami/">
+<meta property="og:image" content="https://lugami-acai.github.io/lugami/img/logo.png">
+<meta property="og:url" content="https://lugami-acai.github.io/lugami/">
 <meta name="theme-color" content="#4a1772">
 <link rel="icon" href="img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,6 +41,8 @@
   <section class="card" id="monte">
     <h2 class="card-titulo"><span class="num">1</span> Monte seu copo</h2>
 
+    <div id="promos"></div>
+
     <div class="bloco">
       <h3>Sabor <small>obrigatório</small></h3>
       <div class="chips" id="sabores"></div>
@@ -57,6 +59,7 @@
       <div class="copo-valor">
         <span>Valor deste copo</span>
         <strong id="copo-total">R$ 0,00</strong>
+        <small class="copo-promo" id="copo-promo" hidden></small>
       </div>
       <button type="button" class="btn" id="btn-add" disabled>Adicionar ao pedido</button>
     </div>

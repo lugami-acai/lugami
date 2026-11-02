@@ -67,7 +67,7 @@ function render(p) {
       <h2 class="card-titulo">Resumo</h2>
       <ul class="resumo-itens">
         ${p.itens.map(i => `
-          <li><span>${i.qtd}x ${esc(i.sabor)} · ${esc(i.tamanho)}
+          <li><span>${i.promo ? `<em class="tag-promo">🔥 ${esc(i.promo)}</em>` : ''}${i.qtd}x ${esc(i.sabor)} · ${esc(i.tamanho)}
             <small>${esc(i.acompanhamentos.join(', ') || 'Sem acompanhamentos')}</small></span>
             <strong>${fmt(i.preco * i.qtd)}</strong></li>`).join('')}
       </ul>

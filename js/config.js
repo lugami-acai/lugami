@@ -82,6 +82,13 @@ const CARDAPIO = {
       { id: 'nutella',    nome: 'Nutella',          preco: 6 },
     ]},
   ],
+  // Promoções: entram sozinhas quando o copo montado tem o tamanho, o sabor e os
+  // acompanhamentos da promoção. Dias: 0 = domingo, 1 = segunda … 6 = sábado.
+  // sabor vazio ('') = vale para qualquer sabor.
+  promocoes: [                          // (EXEMPLO de preço)
+    { id: 'promo-semana', nome: 'Promoção da semana', ativa: true, dias: [1, 2, 3, 4],
+      sabor: 'acai', tamanho: 't300', extras: ['banana', 'granola'], preco: 15 },
+  ],
 };
 
 // Conexão com o Supabase (banco de dados). Enquanto estiver vazio, o site roda

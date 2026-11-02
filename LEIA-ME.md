@@ -37,3 +37,9 @@ Enquanto o Supabase não estiver configurado, o site funciona em modo demonstra�
 
 - Os preços são calculados no navegador do cliente. Ao aceitar um pedido, confira se o total bate com os itens.
 - O cliente só vê o próprio pedido, pelo link. Nome, telefone e endereço ficam visíveis apenas no painel.
+
+## Ideias para depois (backlog)
+
+- **Caldos (época de frio):** caldo de quenga, caldo verde etc. Ficaria numa aba própria no cardápio, com um botão no painel para ligar no frio e desligar no calor.
+- **Bebidas:** outra aba de produtos prontos, também ligável pelo painel. Falta definir os itens.
+- **Som do painel:** se quiser, trocar a campainha atual por um arquivo próprio (.mp3).

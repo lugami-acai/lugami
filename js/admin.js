@@ -100,20 +100,43 @@ function ativarSom() {
   tocarSom();
   $('btn-som').textContent = '🔔 Som ativado';
   $('btn-som').disabled = true;
+  // Enquanto houver pedido esperando ser aceito, repete o aviso.
+  setInterval(() => { if (pedidos.some(p => p.status === 'enviado')) tocarSom(); }, 20000);
 }
 
+// Campainha "plim-plom" (duas notas com harmônicos) seguida da voz "Novo pedido!".
 function tocarSom() {
   if (!audio) return;
-  [0, 0.25, 0.5].forEach(t => {
-    const osc = audio.createOscillator();
-    const vol = audio.createGain();
-    osc.frequency.value = 880;
-    vol.gain.setValueAtTime(0.3, audio.currentTime + t);
-    vol.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + t + 0.2);
-    osc.connect(vol).connect(audio.destination);
-    osc.start(audio.currentTime + t);
-    osc.stop(audio.currentTime + t + 0.2);
-  });
+  const nota = (freq, inicio, duracao) => {
+    [[1, 0.35], [2, 0.12], [3, 0.05]].forEach(([mult, volume]) => {
+      const osc = audio.createOscillator();
+      const vol = audio.createGain();
+      const t = audio.currentTime + inicio;
+      osc.type = 'sine';
+      osc.frequency.value = freq * mult;
+      vol.gain.setValueAtTime(0.0001, t);
+      vol.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+      vol.gain.exponentialRampToValueAtTime(0.0001, t + duracao);
+      osc.connect(vol).connect(audio.destination);
+      osc.start(t);
+      osc.stop(t + duracao);
+    });
+  };
+  nota(1318.5, 0, 0.9);    // Mi
+  nota(1046.5, 0.35, 1.4); // Dó
+  setTimeout(falarNovoPedido, 1300);
+}
+
+function falarNovoPedido() {
+  if (!window.speechSynthesis) return;
+  const fala = new SpeechSynthesisUtterance('Novo pedido!');
+  fala.lang = 'pt-BR';
+  // Prefere as vozes "Natural" (mais humanas) quando o computador tiver.
+  const vozes = speechSynthesis.getVoices().filter(v => v.lang.replace('_', '-').startsWith('pt-BR'));
+  fala.voice = vozes.find(v => /natural/i.test(v.name)) || vozes[0] || null;
+  fala.rate = 1.05;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(fala);
 }
 
 // ---------------- Pedidos ----------------
@@ -242,6 +265,7 @@ function marcarSujo() {
 
 function abrirEditor() {
   edit = structuredClone(config.cardapio || CARDAPIO);
+  edit.promocoes ??= structuredClone(CARDAPIO.promocoes || []);
   esgotados = new Set(config.esgotados);
   sujo = false;
   $('barra-salvar').hidden = true;
@@ -275,8 +299,42 @@ function blocoEditor(titulo, itens, lista, comPreco, ci = '') {
     </div>`;
 }
 
+const DIAS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function blocoPromocao(p, pi) {
+  const opcoes = (lista, sel) => lista.filter(i => i.nome.trim())
+    .map(i => `<option value="${esc(i.id)}" ${i.id === sel ? 'selected' : ''}>${esc(i.nome)}</option>`).join('');
+  const extras = edit.categorias.flatMap(c => c.itens).filter(i => i.nome.trim());
+  const tamanho = edit.tamanhos.find(t => t.id === p.tamanho);
+  const normal = (tamanho?.preco || 0) + extras.filter(e => p.extras.includes(e.id)).reduce((s, e) => s + e.preco, 0);
+  const marcar = (campo, valor, rotulo, marcado) =>
+    `<label><input type="checkbox" data-promo="${campo}" value="${esc(valor)}" ${marcado ? 'checked' : ''}> ${esc(rotulo)}</label>`;
+  return `
+    <div class="card ed-bloco ed-promo" data-pi="${pi}">
+      <div class="ed-cat-cab">
+        <label class="ed-disp" title="Ligada"><input type="checkbox" data-promo="ativa" ${p.ativa ? 'checked' : ''}></label>
+        <input type="text" class="ed-cat-nome" data-promo="nome" value="${esc(p.nome)}" aria-label="Nome da promoção">
+        <button type="button" class="btn-mini perigo" data-acao="remover-promo" data-pi="${pi}">Remover</button>
+      </div>
+      <div class="ed-promo-grade">
+        <label>Sabor <select data-promo="sabor"><option value="">Qualquer sabor</option>${opcoes(edit.sabores, p.sabor)}</select></label>
+        <label>Tamanho <select data-promo="tamanho"><option value="">Escolha…</option>${opcoes(edit.tamanhos, p.tamanho)}</select></label>
+        <label>Preço da promoção <span class="ed-preco">R$ <input type="number" min="0" step="0.5" inputmode="decimal" data-promo="preco" value="${p.preco}"></span></label>
+      </div>
+      <p class="ed-rotulo">Acompanhamentos inclusos <small>preço normal do copo: ${fmt(normal)}</small></p>
+      <div class="ed-marcar">${extras.map(e => marcar('extra', e.id, e.nome, p.extras.includes(e.id))).join('')}</div>
+      <p class="ed-rotulo">Dias da semana</p>
+      <div class="ed-marcar">${DIAS.map((d, i) => marcar('dia', i, d, p.dias.includes(i))).join('')}</div>
+    </div>`;
+}
+
 function renderEditor() {
   $('editor').innerHTML =
+    '<h2 class="ed-subtitulo">Promoções</h2>' +
+    '<p class="dica">A promoção aparece em destaque nos dias marcados. O desconto entra sozinho quando o cliente monta o copo com o tamanho, o sabor e os acompanhamentos dela. Extras são cobrados à parte.</p>' +
+    edit.promocoes.map(blocoPromocao).join('') +
+    '<button type="button" class="btn-mini" data-acao="nova-promo">+ Nova promoção</button>' +
+    '<h2 class="ed-subtitulo">Cardápio</h2>' +
     blocoEditor('Sabores', edit.sabores, 'sabores', false) +
     blocoEditor('Tamanhos', edit.tamanhos, 'tamanhos', true) +
     '<h2 class="ed-subtitulo">Acompanhamentos</h2>' +
@@ -290,6 +348,24 @@ function listaDe(el) {
 
 $('editor').addEventListener('input', e => {
   const campo = e.target.dataset.campo;
+  const campoPromo = e.target.dataset.promo;
+  if (campoPromo) {
+    const p = edit.promocoes[e.target.closest('.ed-promo').dataset.pi];
+    const v = e.target.value;
+    if (campoPromo === 'nome') p.nome = v;
+    else if (campoPromo === 'preco') p.preco = Math.max(0, parseFloat(v) || 0);
+    else if (campoPromo === 'ativa') p.ativa = e.target.checked;
+    else if (campoPromo === 'sabor' || campoPromo === 'tamanho') p[campoPromo] = v;
+    else {
+      const lista = campoPromo === 'dia' ? p.dias : p.extras;
+      const valor = campoPromo === 'dia' ? Number(v) : v;
+      if (e.target.checked) lista.push(valor); else lista.splice(lista.indexOf(valor), 1);
+    }
+    marcarSujo();
+    // Atualiza o "preço normal" mostrado; campos de texto não re-renderizam para não perder o foco.
+    if (['tamanho', 'extra'].includes(campoPromo)) renderEditor();
+    return;
+  }
   if (campo === 'cat-nome') {
     edit.categorias[e.target.dataset.ci].nome = e.target.value;
   } else if (campo === 'nome' || campo === 'preco') {
@@ -320,6 +396,12 @@ $('editor').addEventListener('click', e => {
     edit.categorias.splice(btn.dataset.ci, 1);
   } else if (acao === 'nova-cat') {
     edit.categorias.push({ nome: 'Nova categoria', itens: [] });
+  } else if (acao === 'nova-promo') {
+    edit.promocoes.push({ id: novoIdItem(), nome: 'Nova promoção', ativa: false, dias: [1, 2, 3, 4],
+      sabor: '', tamanho: '', extras: [], preco: 0 });
+  } else if (acao === 'remover-promo') {
+    if (!confirm(`Remover a promoção "${edit.promocoes[btn.dataset.pi].nome}"?`)) return;
+    edit.promocoes.splice(btn.dataset.pi, 1);
   }
   marcarSujo();
   renderEditor();
@@ -343,6 +425,22 @@ $('btn-salvar').onclick = async () => {
     return;
   }
   const ids = [cardapio.sabores, cardapio.tamanhos, ...cardapio.categorias.map(c => c.itens)].flat().map(i => i.id);
+
+  // Promoções: descarta referências a itens removidos e exige tamanho e preço.
+  const tem = (lista, id) => lista.some(i => i.id === id);
+  cardapio.promocoes = edit.promocoes.map(p => ({
+    ...p,
+    nome: p.nome.trim() || 'Promoção',
+    sabor: tem(cardapio.sabores, p.sabor) ? p.sabor : '',
+    tamanho: tem(cardapio.tamanhos, p.tamanho) ? p.tamanho : '',
+    extras: p.extras.filter(id => ids.includes(id)),
+    dias: [...new Set(p.dias)].sort(),
+  }));
+  const invalida = cardapio.promocoes.find(p => !p.tamanho || !p.preco);
+  if (invalida) {
+    toast(`Promoção "${invalida.nome}": escolha o tamanho e o preço.`);
+    return;
+  }
   const lista = [...esgotados].filter(id => ids.includes(id));
 
   $('btn-salvar').disabled = true;

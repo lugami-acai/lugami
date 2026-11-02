@@ -27,7 +27,7 @@ function textoStatus(status, retirada) {
 
 function descreverItem(item) {
   const extras = item.acompanhamentos.length ? item.acompanhamentos.join(', ') : 'sem acompanhamentos';
-  return `${item.qtd}x ${item.sabor} ${item.tamanho} — ${extras}`;
+  return `${item.qtd}x ${item.promo ? `[${item.promo}] ` : ''}${item.sabor} ${item.tamanho} — ${extras}`;
 }
 
 function linkWhats(numero, texto) {

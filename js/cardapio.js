@@ -84,10 +84,75 @@ function renderCardapio() {
       <h3>${esc(cat.nome)} <small>opcional</small></h3>
       <div class="chips">${cat.itens.map(i => chip('checkbox', 'extra', i, true)).join('')}</div>
     </div>`).join('');
+  renderPromos();
   atualizarCopo();
 }
 
 const todosExtras = () => menu.categorias.flatMap(c => c.itens);
+
+// ---------------- Promoções ----------------
+
+// Dia da semana no horário de Brasília (0 = domingo), independente do fuso do celular.
+function diaHoje() {
+  const dia = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', weekday: 'short' }).format(new Date());
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(dia);
+}
+
+// Promoções ligadas para hoje cujos itens ainda existem e não estão esgotados.
+function promocoesDeHoje() {
+  const hoje = diaHoje();
+  const disponivel = (lista, id) => lista.some(i => i.id === id) && !config.esgotados.includes(id);
+  return (menu.promocoes || []).filter(p =>
+    p.ativa && p.dias.includes(hoje) &&
+    disponivel(menu.tamanhos, p.tamanho) &&
+    (!p.sabor || disponivel(menu.sabores, p.sabor)) &&
+    p.extras.every(id => disponivel(todosExtras(), id)));
+}
+
+function precoNormalPromo(p) {
+  const tamanho = menu.tamanhos.find(t => t.id === p.tamanho);
+  return tamanho.preco + todosExtras().filter(e => p.extras.includes(e.id)).reduce((s, e) => s + e.preco, 0);
+}
+
+function renderPromos() {
+  $('promos').innerHTML = promocoesDeHoje().map(p => {
+    const sabor = menu.sabores.find(s => s.id === p.sabor);
+    const tamanho = menu.tamanhos.find(t => t.id === p.tamanho);
+    const extras = todosExtras().filter(e => p.extras.includes(e.id)).map(e => e.nome);
+    const descricao = `${tamanho.nome} de ${sabor ? sabor.nome : 'qualquer sabor'}${extras.length ? ' com ' + extras.join(', ') : ''}`;
+    return `
+      <div class="promo">
+        <span class="promo-selo">🔥 ${esc(p.nome)}</span>
+        <p class="promo-desc">${esc(descricao)}</p>
+        <div class="promo-rodape">
+          <span class="promo-preco"><s>${fmt(precoNormalPromo(p))}</s> <strong>${fmt(p.preco)}</strong></span>
+          <button type="button" class="btn" data-promo="${esc(p.id)}">Quero essa!</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Marca no montador os itens da promoção; o desconto entra sozinho em copoAtual().
+function escolherPromo(e) {
+  const btn = e.target.closest('button[data-promo]');
+  if (!btn) return;
+  const p = menu.promocoes.find(x => x.id === btn.dataset.promo);
+  document.querySelectorAll('#monte input').forEach(i => { i.checked = false; });
+  const marcar = (nome, id) => { const i = document.querySelector(`input[name=${nome}][value="${CSS.escape(id)}"]`); if (i) i.checked = true; };
+  if (p.sabor) marcar('sabor', p.sabor);
+  marcar('tamanho', p.tamanho);
+  p.extras.forEach(id => marcar('extra', id));
+  atualizarCopo();
+  if (!p.sabor) {
+    toast('Agora escolha o sabor 💜');
+    $('sabores').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    toast('Promoção montada! Quer mais algum acompanhamento? É só marcar.');
+    $('copo-total').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// ---------------- Montagem do copo (preço) ----------------
 
 function copoAtual() {
   const saborId = document.querySelector('input[name=sabor]:checked')?.value;
@@ -96,13 +161,26 @@ function copoAtual() {
   const sabor = menu.sabores.find(s => s.id === saborId);
   const tamanho = menu.tamanhos.find(t => t.id === tamanhoId);
   const extras = todosExtras().filter(e => extrasIds.includes(e.id));
-  const preco = (tamanho?.preco || 0) + extras.reduce((s, e) => s + e.preco, 0);
-  return { sabor, tamanho, extras, preco };
+  const precoNormal = (tamanho?.preco || 0) + extras.reduce((s, e) => s + e.preco, 0);
+
+  // Aplica a promoção de hoje que deixar o copo mais barato, se o copo se encaixar nela.
+  let preco = precoNormal;
+  let promo = null;
+  if (tamanho) {
+    for (const p of promocoesDeHoje()) {
+      if (p.tamanho !== tamanho.id || (p.sabor && p.sabor !== saborId) || !p.extras.every(id => extrasIds.includes(id))) continue;
+      const comPromo = p.preco + extras.filter(e => !p.extras.includes(e.id)).reduce((s, e) => s + e.preco, 0);
+      if (comPromo < preco) { preco = comPromo; promo = p; }
+    }
+  }
+  return { sabor, tamanho, extras, preco, precoNormal, promo };
 }
 
 function atualizarCopo() {
   const copo = copoAtual();
   $('copo-total').textContent = fmt(copo.preco);
+  $('copo-promo').hidden = !copo.promo;
+  $('copo-promo').innerHTML = copo.promo ? `🔥 ${esc(copo.promo.nome)} · <s>${fmt(copo.precoNormal)}</s>` : '';
   $('btn-add').disabled = !(copo.sabor && copo.tamanho);
   $('btn-add').textContent = !copo.sabor ? 'Escolha o sabor'
     : !copo.tamanho ? 'Escolha o tamanho' : 'Adicionar ao pedido';
@@ -117,6 +195,7 @@ function adicionarCopo() {
     acompanhamentos: copo.extras.map(e => e.nome),
     preco: copo.preco,
     qtd: 1,
+    ...(copo.promo && { promo: copo.promo.nome }),
   });
   document.querySelectorAll('#monte input').forEach(i => { i.checked = false; });
   atualizarCopo();
@@ -136,6 +215,7 @@ function renderCarrinho() {
     lista.innerHTML = carrinho.map((item, i) => `
       <div class="item-carrinho">
         <div class="item-info">
+          ${item.promo ? `<em class="tag-promo">🔥 ${esc(item.promo)}</em>` : ''}
           <strong>${esc(item.sabor)} · ${esc(item.tamanho)}</strong>
           <span>${item.acompanhamentos.length ? esc(item.acompanhamentos.join(', ')) : 'Sem acompanhamentos'}</span>
         </div>
@@ -281,7 +361,7 @@ async function iniciar() {
   mostrarPedidoEmAndamento();
   try {
     config = await DB.getConfig();
-    if (config.cardapio) menu = config.cardapio;
+    if (config.cardapio) menu = { promocoes: CARDAPIO.promocoes, ...config.cardapio };
   } catch (e) {
     toast('Não foi possível verificar se a loja está aberta.');
   }
@@ -291,6 +371,7 @@ async function iniciar() {
 
   $('monte').addEventListener('change', atualizarCopo);
   $('btn-add').onclick = adicionarCopo;
+  $('promos').addEventListener('click', escolherPromo);
   $('carrinho').addEventListener('click', alterarQtd);
   $('tipos-entrega').addEventListener('change', () => {
     $('campos-endereco').hidden = tipoEntrega() !== 'entrega';
