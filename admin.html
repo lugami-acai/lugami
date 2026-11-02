@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Lugami</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#4a1772">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin">
+
+<header class="topo">
+  <div class="wrap topo-inner">
+    <span class="topo-marca"><img src="img/logo.png" alt=""> Painel da loja</span>
+    <button type="button" class="topo-link" id="btn-sair" hidden>Sair</button>
+  </div>
+</header>
+
+<!-- Login -->
+<main class="wrap estreito" id="tela-login">
+  <form class="card" id="form-login">
+    <h1 class="card-titulo">Entrar no painel</h1>
+    <p class="dica" id="dica-demo" hidden>Modo demonstração: use qualquer e-mail e a senha <strong>lugami</strong>.</p>
+    <label class="campo">E-mail <input type="email" id="email" required autocomplete="username"></label>
+    <label class="campo">Senha <input type="password" id="senha" required autocomplete="current-password"></label>
+    <p class="msg-erro" id="erro-login" hidden></p>
+    <button type="submit" class="btn btn-grande">Entrar</button>
+  </form>
+</main>
+
+<!-- Painel -->
+<main class="wrap" id="tela-painel" hidden>
+
+  <div class="painel-topo">
+    <label class="interruptor">
+      <input type="checkbox" id="loja-aberta">
+      <span class="interruptor-trilho"></span>
+      <span id="loja-aberta-texto">…</span>
+    </label>
+    <button type="button" class="btn-mini" id="btn-som">🔔 Ativar som de novos pedidos</button>
+  </div>
+
+  <nav class="abas" id="abas">
+    <button type="button" class="aba ativa" data-aba="andamento">Em andamento <span id="cont-andamento"></span></button>
+    <button type="button" class="aba" data-aba="finalizados">Finalizados</button>
+    <button type="button" class="aba" data-aba="cancelados">Cancelados</button>
+    <button type="button" class="aba" data-aba="cardapio">Cardápio</button>
+  </nav>
+
+  <section id="lista-pedidos"></section>
+
+  <section id="editor-cardapio" hidden>
+    <p class="dica">Altere nomes e preços, desmarque o que estiver em falta (some do cardápio como "esgotado") e toque em <strong>Salvar cardápio</strong>.</p>
+    <div id="editor"></div>
+    <div class="barra-salvar" id="barra-salvar" hidden>
+      <span>Alterações não salvas</span>
+      <button type="button" class="btn-mini" id="btn-descartar">Descartar</button>
+      <button type="button" class="btn" id="btn-salvar">Salvar cardápio</button>
+    </div>
+  </section>
+</main>
+
+<dialog class="modal" id="modal-pergunta">
+  <form method="dialog">
+    <h3 id="pergunta-titulo"></h3>
+    <label class="campo" id="pergunta-campo"><span id="pergunta-rotulo"></span>
+      <input id="pergunta-input">
+    </label>
+    <div class="modal-acoes">
+      <button value="cancelar" class="btn-mini" formnovalidate>Voltar</button>
+      <button value="ok" class="btn" id="pergunta-ok">Confirmar</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

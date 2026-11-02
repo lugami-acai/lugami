@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lugami — Açaí e Sorvetes</title>
+<meta name="description" content="Monte seu açaí e peça pelo celular.">
+<meta property="og:title" content="Lugami — Açaí e Sorvetes">
+<meta property="og:description" content="Monte seu açaí e peça pelo celular 💜">
+<meta property="og:image" content="img/logo.png">
+<meta name="theme-color" content="#4a1772">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <img class="hero-logo" src="img/logo.png" alt="Logo Lugami">
+    <div class="hero-text">
+      <h1 id="loja-nome">Lugami</h1>
+      <p class="hero-slogan" id="loja-slogan"></p>
+      <div class="hero-row">
+        <span class="badge" id="status-loja">Carregando…</span>
+        <button type="button" class="hero-link" id="btn-info">Horários e endereço</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <p class="aviso-demo" id="aviso-demo" hidden>Modo demonstração: os pedidos ficam salvos só neste navegador.</p>
+
+  <a class="pedido-aberto" id="pedido-aberto" hidden></a>
+
+  <section class="card" id="monte">
+    <h2 class="card-titulo"><span class="num">1</span> Monte seu copo</h2>
+
+    <div class="bloco">
+      <h3>Sabor <small>obrigatório</small></h3>
+      <div class="chips" id="sabores"></div>
+    </div>
+
+    <div class="bloco">
+      <h3>Tamanho <small>obrigatório</small></h3>
+      <div class="chips" id="tamanhos"></div>
+    </div>
+
+    <div id="categorias"></div>
+
+    <div class="copo-rodape">
+      <div class="copo-valor">
+        <span>Valor deste copo</span>
+        <strong id="copo-total">R$ 0,00</strong>
+      </div>
+      <button type="button" class="btn" id="btn-add" disabled>Adicionar ao pedido</button>
+    </div>
+  </section>
+
+  <section class="card" id="carrinho-sec">
+    <h2 class="card-titulo"><span class="num">2</span> Seu pedido</h2>
+    <div id="carrinho"></div>
+  </section>
+
+  <section class="card" id="entrega-sec">
+    <h2 class="card-titulo"><span class="num">3</span> Entrega</h2>
+
+    <div class="chips" id="tipos-entrega">
+      <label class="chip"><input type="radio" name="tipo" value="entrega"><span>Delivery <em id="taxa-label"></em></span></label>
+      <label class="chip"><input type="radio" name="tipo" value="retirada"><span>Retirar na loja <em>grátis</em></span></label>
+    </div>
+
+    <div class="campos">
+      <label class="campo">Nome
+        <input type="text" id="nome" autocomplete="name" placeholder="Seu nome" maxlength="80">
+      </label>
+      <label class="campo">WhatsApp
+        <input type="tel" id="telefone" autocomplete="tel" inputmode="numeric" placeholder="(11) 99999-9999" maxlength="16">
+      </label>
+      <div class="campos-endereco" id="campos-endereco" hidden>
+        <label class="campo">Rua e número
+          <input type="text" id="rua" autocomplete="street-address" placeholder="Ex: Rua das Flores, 120" maxlength="150">
+        </label>
+        <label class="campo">Bairro
+          <input type="text" id="bairro" placeholder="Seu bairro" maxlength="80">
+        </label>
+        <label class="campo campo-largo">Complemento / ponto de referência <small>opcional</small>
+          <input type="text" id="referencia" placeholder="Ex: apto 12, portão azul, perto do mercado" maxlength="200">
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="pagamento-sec">
+    <h2 class="card-titulo"><span class="num">4</span> Pagamento</h2>
+    <div class="chips" id="pagamentos"></div>
+
+    <div class="caixa" id="caixa-pix" hidden>
+      <span class="caixa-rotulo">Chave Pix</span>
+      <div class="pix-linha">
+        <code id="pix-chave"></code>
+        <button type="button" class="btn-mini" id="btn-copiar-pix">Copiar</button>
+      </div>
+      <p id="pix-titular"></p>
+      <p>Depois de pagar, envie o comprovante no WhatsApp da loja.</p>
+    </div>
+
+    <div class="caixa" id="caixa-troco" hidden>
+      <label class="campo">Troco para quanto? <small>deixe vazio se não precisar</small>
+        <input type="text" id="troco" inputmode="decimal" placeholder="Ex: 50" maxlength="10">
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="card-titulo"><span class="num">5</span> Finalizar</h2>
+    <label class="campo campo-largo">Observações <small>opcional</small>
+      <textarea id="observacoes" rows="3" maxlength="500" placeholder="Ex: Nutella por baixo, sem granola…"></textarea>
+    </label>
+
+    <dl class="resumo">
+      <div><dt>Subtotal</dt><dd id="r-subtotal">R$ 0,00</dd></div>
+      <div><dt>Entrega</dt><dd id="r-taxa">—</dd></div>
+      <div class="resumo-total"><dt>Total</dt><dd id="r-total">R$ 0,00</dd></div>
+    </dl>
+
+    <p class="msg-erro" id="msg-erro" role="alert" hidden></p>
+    <button type="button" class="btn btn-grande" id="btn-enviar">Enviar pedido</button>
+  </section>
+
+</main>
+
+<div class="barra-fixa" id="barra-fixa" hidden>
+  <div class="wrap barra-inner">
+    <div><span id="barra-qtd"></span><strong id="barra-total"></strong></div>
+    <button type="button" class="btn" id="btn-ir-finalizar">Finalizar pedido</button>
+  </div>
+</div>
+
+<footer class="rodape">
+  <div class="wrap">
+    <p><strong>Lugami</strong> · Açaí e Sorvetes</p>
+    <p id="rodape-endereco"></p>
+    <p class="rodape-links">
+      <a id="rodape-whats" target="_blank" rel="noopener">WhatsApp</a>
+      <a id="rodape-insta" target="_blank" rel="noopener" hidden>Instagram</a>
+    </p>
+  </div>
+</footer>
+
+<dialog class="modal" id="modal-info">
+  <button type="button" class="modal-fechar" aria-label="Fechar">✕</button>
+  <h3>Lugami</h3>
+  <p id="info-endereco"></p>
+  <h4>Tempo médio</h4>
+  <p id="info-tempos"></p>
+  <h4>Horário de funcionamento</h4>
+  <table class="horarios" id="info-horarios"></table>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/cardapio.js"></script>
+</body>
+</html>
