@@ -88,6 +88,6 @@ const CARDAPIO = {
 // em MODO DEMONSTRAÇÃO: os pedidos ficam salvos só neste navegador, para testar.
 // A "chave" é a anon/public key do projeto — ela pode ficar pública.
 const SUPABASE = {
-  url: '',
-  chave: '',
+  url: 'https://gdgystjmqytczjvrlwhv.supabase.co',
+  chave: 'sb_publishable_bKuMiDSBCWqNEN2NnnFrrw_twty0nTm',
 };
